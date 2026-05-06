@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Baobab — It gives the gift of life</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Cormorant+SC:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --amber: #b86010;
+    --amber-deep: #7a2c08;
+    --dark: #1a0c06;
+    --darker: #0a0301;
+    --gold: rgba(220,175,90,0.75);
+    --gold-dim: rgba(190,150,70,0.35);
+    --gold-mute: rgba(170,130,60,0.45);
+    --text-warm: rgba(240,215,175,0.82);
+    --text-dim: rgba(210,175,120,0.55);
+    --text-faint: rgba(170,130,60,0.4);
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--darker);
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+
+  .screen {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: env(safe-area-inset-top, 44px) 28px env(safe-area-inset-bottom, 28px);
+    padding-top: max(44px, env(safe-area-inset-top));
+    padding-bottom: max(28px, env(safe-area-inset-bottom));
+    transition: opacity 0.9s ease;
+    overflow: hidden;
+  }
+
+  .screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* Shared background */
+  .bg {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 28%, var(--amber) 0%, var(--amber-deep) 32%, #2a0c04 68%, var(--dark) 100%);
+    opacity: 0.72;
+    pointer-events: none;
+  }
+
+  /* Shared tree */
+  .tree-svg {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(380px, 100vw);
+    pointer-events: none;
+  }
+
+  .sway {
+    animation: sway 8s ease-in-out infinite;
+    transform-origin: center bottom;
+  }
+
+  @keyframes sway {
+    0%, 100% { transform: rotate(-0.5deg); }
+    50% { transform: rotate(0.5deg); }
+  }
+
+  /* ===================== SCREEN 1 — ARRIVAL ===================== */
+  #s1 .top {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    animation: fadeUp 1.4s ease both;
+  }
+
+  .baobab-title {
+    font-family: 'Cormorant SC', Georgia, serif;
+    font-size: clamp(32px, 8vw, 42px);
+    font-weight: 300;
+    color: var(--text-warm);
+    letter-spacing: 0.22em;
+    margin-bottom: 6px;
+  }
+
+  .baobab-tagline {
+    font-size: clamp(13px, 3.5vw, 16px);
+    font-style: italic;
+    color: var(--text-dim);
+    font-weight: 300;
+    letter-spacing: 0.06em;
+  }
+
+  #s1 .middle {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    animation: fadeUp 1.4s ease 0.3s both;
+  }
+
+  .greeting-card {
+    background: rgba(20, 8, 3, 0.58);
+    border: 1px solid var(--gold-dim);
+    border-radius: 20px;
+    padding: clamp(18px, 5vw, 28px) clamp(20px, 6vw, 32px);
+    text-align: center;
+    backdrop-filter: blur(4px);
+    margin-bottom: 16px;
+  }
+
+  .greeting-label {
+    font-family: 'Cormorant SC', Georgia, serif;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: var(--gold-mute);
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  .greeting-main {
+    font-size: clamp(18px, 5vw, 24px);
+    font-weight: 300;
+    color: var(--text-warm);
+    line-height: 1.5;
+    margin-bottom: 6px;
+  }
+
+  .greeting-sub {
+    font-size: clamp(13px, 3.5vw, 15px);
+    font-style: italic;
+    color: var(--text-dim);
+    font-weight: 300;
+    line-height: 1.65;
+  }
+
+  .choice-label {
+    font-family: 'Cormorant SC', Georgia, serif;
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    color: var(--gold-mute);
+    text-align: center;
+    display: block;
+    margin-bottom: 12px;
+  }
+
+  .choice-row {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .choice-card {
+    flex: 1;
+    background: rgba(20, 8, 3, 0.45);
+    border: 1px solid var(--gold-dim);
+    border-radius: 16px;
+    padding: clamp(14px, 4vw, 20px) 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.3s, border-color 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .choice-card:hover, .choice-card.selected {
+    background: rgba(40, 16, 5, 0.7);
+    border-color: rgba(200, 155, 75, 0.55);
+  }
+
+  .choice-card.selected {
+    border-width: 1.5px;
+  }
+
+  .choice-icon {
+    font-size: 22px;
+    line-height: 1;
+  }
+
+  .choice-name {
+    font-family: 'Cormorant SC', Georgia, serif;
+    font-size: clamp(11px, 3vw, 13px);
+    letter-spacing: 0.1em;
+    color: var(--text-warm);
+  }
+
+  .choice-desc {
+    font-size: clamp(11px, 2.8vw, 12px);
+    font-style: italic;
+    color: var(--text-dim);
+    line-height: 1.5;
+    font-weight: 300;
+  }
+
+  #s1 .bottom {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    animation: fadeUp 1.4s ease 0.6s both;
+  }
+
+  .primary-btn {
+    width: 100%;
+    background: rgba(180, 95, 20, 0.6);
+    color: rgba(245, 225, 185, 0.9);
+    border: 1px solid rgba(200, 150, 70, 0.4);
+    border-radius: 40px;
+    padding: clamp(13px, 3.5vw, 16px) 20px;
+    font-family: 'Cormorant SC', Georgia, serif;
+    font-size: clamp(12px, 3.2vw, 14px);
+    letter-spacing: 0.18em;
+    cursor: pointer;
+    transition: background 0.3s, opacity 0.3s;
+    opacity: 0.4;
+  }
+
+  .primary-btn.active {
+    opacity: 1;
+  }
+
+  .primary-btn.active:hover {
+    background: rgba(160, 75, 10, 0.8);
+  }
+
+  /* ===================== SCREEN 2 — SILENCE ===================== */
+  #s2 .top {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    animation: fadeIn 2.5s ease both;
+  }
+
+  .silence-name {
+    font-family: 'Cormorant SC', Georgia, serif;
+    font-size: clamp(20px, 5vw, 26px);
+    font-weight: 300;
+    color: rgba(240, 215, 175, 0.45);
+    letter-spacing: 0.25em;
+  }
+
+  #s2 .middle {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    animation: fadeIn 3s ease 0.8s both;
+  }
+
+  .breath-ring {
+    width: clamp(80px, 22vw, 100px);
+    height: clamp(80px, 22vw, 100px);
+    border-radius: 50%;
+    border: 1px solid rgba(190, 140, 70, 0.22);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .breath-pulse {
+    width: clamp(50px, 14vw, 62px);
+    height: clamp(50px, 14vw, 62px);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(180, 120, 50, 0.18) 0%, transparent 70%);
+    border: 1px solid rgba(190, 140, 70, 0.28);
+    animation: breathe 6s ease-in-out infinite;
+  }
+
+  @keyframes breathe {
+    0%, 100% { transform: scale(0.8); opacity: 0.4; }
+    50% { transform: scale(1.2); opacity: 0.9; }
+  }
+
+  .silence-words {
+    font-size: clamp(16px, 4.5vw, 20px);
+    font-style: italic;
+    font-weight: 300;
+    color: rgba(235, 205, 155, 0.68);
+    letter-spacing: 0.05em;
+    text-align: center;
+    line-height: 1.75;
+  }
+
+  .sound-indicator {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    opacity: 0;
+    transition: opacity 1s ease;
+  }
+
+  .sound-indicator.visible { opacity: 1; }
+
+  .sdot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: rgba(190, 150, 70, 0.4);
+    animation: sp 2.2s ease-in-out infinite;
+  }
+
+  .sdot:nth-child(2) { animation-delay: 0.35s; }
+  .sdot:nth-child(3) { animation-delay: 0.7s; }
+
+  @keyframes sp {
+    0%, 100% { opacity: 0.2; transform: scale(0.7); }
+    50% { opacity: 0.8; transform: scale(1.2); }
+  }
+
+  .slabel {
+    font-size: 11px;
+    font-style: italic;
+    color: rgba(170, 130, 60, 0.4);
+    letter-spacing: 0.06em;
+  }
+
+  #s2 .bottom {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    animation: fadeIn 3s ease 1.8s both;
+  }
+
+  .ghost-btn {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(235, 205, 155, 0.6);
+    border: 1px solid rgba(190, 140, 70, 0.18);
+    border-radius: 40px;
+    padding: clamp(12px, 3.5vw, 15px) 20px;
+    font-family: 'Cormorant SC', Georgia, serif;
+    font-size: clamp(11px, 3vw, 13px);
+    letter-spacing: 0.16em;
+    cursor: pointer;
+    transition: background 0.4s, color 0.4s, border-color 0.4s;
+  }
+
+  .ghost-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(235, 205, 155, 0.9);
+    border-color: rgba(190, 140, 70, 0.35);
+  }
+
+  /* ===================== SCREEN 3 — CLOSING ===================== */
+  #s3 .middle {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    text-align: center;
+    animation: fadeIn 2s ease both;
+  }
+
+  .closing-name {
+    font-family: 'Cormorant SC', Georgia, serif;
+    font-size: clamp(28px, 7vw, 38px);
+    font-weight: 300;
+    color: var(--text-warm);
+    letter-spacing: 0.2em;
+  }
+
+  .closing-words {
+    font-size: clamp(15px, 4vw, 18px);
+    font-style: italic;
+    font-weight: 300;
+    color: var(--text-dim);
+    line-height: 1.85;
+    max-width: 280px;
+  }
+
+  .closing-stone {
+    background: rgba(20, 8, 3, 0.5);
+    border: 1px solid var(--gold-dim);
+    border-radius: 16px;
+    padding: 16px 22px;
+    font-size: clamp(12px, 3.2vw, 14px);
+    font-style: italic;
+    color: var(--text-dim);
+    line-height: 1.65;
+    text-align: center;
+    max-width: 300px;
+  }
+
+  #s3 .bottom {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    animation: fadeIn 2s ease 0.6s both;
+  }
+
+  /* Shared dots */
+  .dot-row {
+    display: flex;
+    gap: 7px;
+    align-items: center;
+  }
+
+  .dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(180, 130, 60, 0.2);
+    transition: background 0.4s, width 0.4s;
+  }
+
+  .dot.active {
+    background: rgba(200, 155, 75, 0.65);
+    width: 16px;
+    border-radius: 3px;
+  }
+
+  .dot-label {
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: var(--text-faint);
+    font-family: 'Cormorant SC', Georgia, serif;
+    margin-top: 4px;
+  }
+
+  .return-link {
+    font-size: 12px;
+    font-style: italic;
+    color: var(--text-faint);
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    letter-spacing: 0.04em;
+    padding: 4px;
+  }
+
+  .return-link:hover { color: var(--text-dim); }
+
+  /* Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== SCREEN 1 — ARRIVAL ===================== -->
+<div class="screen" id="s1">
+  <div class="bg"></div>
+
+  <svg class="tree-svg" viewBox="0 0 380 300" xmlns="http://www.w3.org/2000/svg" style="height:300px;opacity:0.35;">
+    <g class="sway">
+      <rect x="0" y="255" width="380" height="50" fill="#0a0301"/>
+      <ellipse cx="190" cy="255" rx="190" ry="11" fill="#0a0301"/>
+      <rect x="172" y="95" width="36" height="165" rx="12" fill="#120502"/>
+      <path d="M190 130 Q145 106 112 74 Q86 52 68 26" stroke="#120502" stroke-width="14" fill="none" stroke-linecap="round"/>
+      <path d="M68 26 Q52 10 40 -2" stroke="#120502" stroke-width="8" fill="none" stroke-linecap="round"/>
+      <path d="M68 26 Q58 14 64 2" stroke="#120502" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <path d="M112 74 Q98 52 90 32" stroke="#120502" stroke-width="7" fill="none" stroke-linecap="round"/>
+      <path d="M112 74 Q124 52 134 34" stroke="#120502" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <path d="M190 115 Q235 90 266 60 Q288 38 306 14" stroke="#120502" stroke-width="14" fill="none" stroke-linecap="round"/>
+      <path d="M306 14 Q320 0 330 -10" stroke="#120502" stroke-width="8" fill="none" stroke-linecap="round"/>
+      <path d="M306 14 Q316 26 324 18" stroke="#120502" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <path d="M266 60 Q278 38 284 20" stroke="#120502" stroke-width="7" fill="none" stroke-linecap="round"/>
+      <path d="M266 60 Q254 38 248 20" stroke="#120502" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <path d="M190 152 Q150 140 120 124 Q96 110 78 92" stroke="#120502" stroke-width="10" fill="none" stroke-linecap="round"/>
+      <path d="M78 92 Q62 76 50 58" stroke="#120502" stroke-width="7" fill="none" stroke-linecap="round"/>
+      <path d="M190 152 Q230 138 260 122 Q284 108 302 90" stroke="#120502" stroke-width="10" fill="none" stroke-linecap="round"/>
+      <path d="M302 90 Q318 74 330 58" stroke="#120502" stroke-width="7" fill="none" stroke-linecap="round"/>
+      <path d="M180 182 Q154 172 130 158 Q110 146 94 130" stroke="#120502" stroke-width="8" fill="none" stroke-linecap="round"/>
+      <path d="M200 182 Q226 170 250 156 Q270 144 286 128" stroke="#120502" stroke-width="8" fill="none" stroke-linecap="round"/>
+      <ellipse cx="190" cy="258" rx="62" ry="8" fill="#060201" opacity="0.9"/>
+      <g transform="translate(148,222)">
+        <ellipse cx="0" cy="24" rx="20" ry="5" fill="#060201" opacity="0.7"/>
+        <path d="M-7 24 Q-9 12 -7 2 Q-5 -6 0 -13" stroke="#060201" stroke-width="6" fill="none" stroke-linecap="round"/>
+        <path d="M7 24 Q9 13 11 5" stroke="#060201" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <circle cx="0" cy="-17" r="7" fill="#060201"/>
+        <path d="M-7 2 Q-17 0 -20 4" stroke="#060201" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <path d="M0 -5 Q8 -2 13 -6" stroke="#060201" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+      </g>
+    </g>
+  </svg>
+
+  <div class="top">
+    <div class="baobab-title">Baobab</div>
+    <div class="baobab-tagline">it gives the gift of life</div>
+  </div>
+
+  <div class="middle">
+    <div class="greeting-card">
+      <span class="greeting-label">a moment for you</span>
+      <div class="greeting-main">Good day.<br>Let's sit together.</div>
+      <div class="greeting-sub">There is nothing you need to do<br>except arrive.</div>
+    </div>
+
+    <span class="choice-label">How would you like to arrive today?</span>
+    <div class="choice-row">
+      <div class="choice-card" id="c-nature" onclick="selectChoice('nature')">
+        <div class="choice-icon">🌿</div>
+        <div class="choice-name">Nature's Quiet</div>
+        <div class="choice-desc">Soft wind.<br>The earth breathing.</div>
+      </div>
+      <div class="choice-card" id="c-still" onclick="selectChoice('still')">
+        <div class="choice-icon">○</div>
+        <div class="choice-name">Complete Stillness</div>
+        <div class="choice-desc">Just silence.<br>Just you and the tree.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom">
+    <button class="primary-btn" id="arrive-btn" onclick="goToSilence()">
+      Arrive under the tree
+    </button>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:5px;">
+      <div class="dot-row">
+        <div class="dot active" id="d1-1"></div>
+        <div class="dot" id="d1-2"></div>
+        <div class="dot" id="d1-3"></div>
+        <div class="dot" id="d1-4"></div>
+        <div class="dot" id="d1-5"></div>
+        <div class="dot" id="d1-6"></div>
+        <div class="dot" id="d1-7"></div>
+      </div>
+      <div class="dot-label">Practice I — just be here</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===================== SCREEN 2 — SILENCE ===================== -->
+<div class="screen hidden" id="s2">
+  <div class="bg"></div>
+
+  <svg class="tree-svg" viewBox="0 0 380 300" xmlns="http://www.w3.org/2000/svg" style="height:300px;opacity:0.55;">
+    <g class="sway">
+      <rect x="0" y="255" width="380" height="50" fill="#0a0301"/>
+      <ellipse cx="190" cy="255" rx="190" ry="11" fill="#0a0301"/>
+      <rect x="172" y="95" width="36" height="165" rx="12" fill="#120502"/>
+      <path d="M190 130 Q145 106 112 74 Q86 52 68 26" stroke="#120502" stroke-width="14" fill="none" stroke-linecap="round"/>
+      <path d="M68 26 Q52 10 40 -2" stroke="#120502" stroke-width="8" fill="none" stroke-linecap="round"/>
+      <path d="M68 26 Q58 14 64 2" stroke="#120502" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <path d="M112 74 Q98 52 90 32" stroke="#120502" stroke-width="7" fill="none" stroke-linecap="round"/>
+      <path d="M112 74 Q124 52 134 34" stroke="#120502" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <path d="M190 115 Q235 90 266 60 Q288 38 306 14" stroke="#120502" stroke-width="14" fill="none" stroke-linecap="round"/>
+      <path d="M306 14 Q320 0 330 -10" stroke="#120502" stroke-width="8" fill="none" stroke-linecap="round"/>
+      <path d="M306 14 Q316 26 324 18" stroke="#120502" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <path d="M266 60 Q278 38 284 20" stroke="#120502" stroke-width="7" fill="none" stroke-linecap="round"/>
+      <path d="M266 60 Q254 38 248 20" stroke="#120502" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <path d="M190 152 Q150 140 120 124 Q96 110 78 92" stroke="#120502" stroke-width="10" fill="none" stroke-linecap="round"/>
+      <path d="M78 92 Q62 76 50 58" stroke="#120502" stroke-width="7" fill="none" stroke-linecap="round"/>
+      <path d="M190 152 Q230 138 260 122 Q284 108 302 90" stroke="#120502" stroke-width="10" fill="none" stroke-linecap="round"/>
+      <path d="M302 90 Q318 74 330 58" stroke="#120502" stroke-width="7" fill="none" stroke-linecap="round"/>
+      <path d="M180 182 Q154 172 130 158 Q110 146 94 130" stroke="#120502" stroke-width="8" fill="none" stroke-linecap="round"/>
+      <path d="M200 182 Q226 170 250 156 Q270 144 286 128" stroke="#120502" stroke-width="8" fill="none" stroke-linecap="round"/>
+      <ellipse cx="190" cy="258" rx="62" ry="8" fill="#060201" opacity="0.9"/>
+      <g transform="translate(148,222)">
+        <ellipse cx="0" cy="24" rx="20" ry="5" fill="#060201" opacity="0.7"/>
+        <path d="M-7 24 Q-9 12 -7 2 Q-5 -6 0 -13" stroke="#060201" stroke-width="6" fill="none" stroke-linecap="round"/>
+        <path d="M7 24 Q9 13 11 5" stroke="#060201" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <circle cx="0" cy="-17" r="7" fill="#060201"/>
+        <path d="M-7 2 Q-17 0 -20 4" stroke="#060201" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <path d="M0 -5 Q8 -2 13 -6" stroke="#060201" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+      </g>
+    </g>
+  </svg>
+
+  <div class="top">
+    <div class="silence-name">Baobab</div>
+  </div>
+
+  <div class="middle">
+    <div class="breath-ring">
+      <div class="breath-pulse"></div>
+    </div>
+    <div class="silence-words" id="silence-words">Just be here.</div>
+    <div class="sound-indicator" id="sound-ind">
+      <div class="sdot"></div>
+      <div class="sdot"></div>
+      <div class="sdot"></div>
+      <span class="slabel">nature's quiet</span>
+    </div>
+  </div>
+
+  <div class="bottom">
+    <button class="ghost-btn" onclick="goToClosing()">
+      something has shifted — I am ready
+    </button>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:5px;">
+      <div class="dot-row">
+        <div class="dot active"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+      <div class="dot-label">Practice I — just be here</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===================== SCREEN 3 — CLOSING ===================== -->
+<div class="screen hidden" id="s3">
+  <div class="bg"></div>
+
+  <svg class="tree-svg" viewBox="0 0 380 300" xmlns="http://www.w3.org/2000/svg" style="height:300px;opacity:0.28;">
+    <g class="sway">
+      <rect x="0" y="255" width="380" height="50" fill="#0a0301"/>
+      <ellipse cx="190" cy="255" rx="190" ry="11" fill="#0a0301"/>
+      <rect x="172" y="95" width="36" height="165" rx="12" fill="#120502"/>
+      <path d="M190 130 Q145 106 112 74 Q86 52 68 26" stroke="#120502" stroke-width="14" fill="none" stroke-linecap="round"/>
+      <path d="M68 26 Q52 10 40 -2" stroke="#120502" stroke-width="8" fill="none" stroke-linecap="round"/>
+      <path d="M112 74 Q98 52 90 32" stroke="#120502" stroke-width="7" fill="none" stroke-linecap="round"/>
+      <path d="M190 115 Q235 90 266 60 Q288 38 306 14" stroke="#120502" stroke-width="14" fill="none" stroke-linecap="round"/>
+      <path d="M306 14 Q320 0 330 -10" stroke="#120502" stroke-width="8" fill="none" stroke-linecap="round"/>
+      <path d="M266 60 Q278 38 284 20" stroke="#120502" stroke-width="7" fill="none" stroke-linecap="round"/>
+      <path d="M190 152 Q150 140 120 124 Q96 110 78 92" stroke="#120502" stroke-width="10" fill="none" stroke-linecap="round"/>
+      <path d="M190 152 Q230 138 260 122 Q284 108 302 90" stroke="#120502" stroke-width="10" fill="none" stroke-linecap="round"/>
+      <ellipse cx="190" cy="258" rx="62" ry="8" fill="#060201" opacity="0.9"/>
+      <g transform="translate(148,222)">
+        <ellipse cx="0" cy="24" rx="20" ry="5" fill="#060201" opacity="0.7"/>
+        <path d="M-7 24 Q-9 12 -7 2 Q-5 -6 0 -13" stroke="#060201" stroke-width="6" fill="none" stroke-linecap="round"/>
+        <path d="M7 24 Q9 13 11 5" stroke="#060201" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <circle cx="0" cy="-17" r="7" fill="#060201"/>
+        <path d="M-7 2 Q-17 0 -20 4" stroke="#060201" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <path d="M0 -5 Q8 -2 13 -6" stroke="#060201" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+      </g>
+    </g>
+  </svg>
+
+  <div style="position:relative;z-index:2;"></div>
+
+  <div class="middle">
+    <div class="closing-name">Baobab</div>
+    <div class="closing-words" id="closing-words">
+      The tree has been here<br>for a thousand years.<br><br>
+      It will be here<br>when you need it again.
+    </div>
+    <div class="closing-stone">
+      Carry something grounding<br>back into your day.<br>
+      <em>You chose the tree today.</em>
+    </div>
+  </div>
+
+  <div class="bottom">
+    <button class="primary-btn active" onclick="returnToStart()">
+      Return to my day
+    </button>
+    <button class="return-link" onclick="returnToStart()">
+      come back anytime
+    </button>
+  </div>
+</div>
+
+<script>
+var chosen = null;
+var audioCtx = null;
+var noiseSource = null;
+var gainNode = null;
+
+function selectChoice(type) {
+  chosen = type;
+  document.getElementById('c-nature').classList.remove('selected');
+  document.getElementById('c-still').classList.remove('selected');
+  document.getElementById('c-' + (type === 'nature' ? 'nature' : 'still')).classList.add('selected');
+  document.getElementById('arrive-btn').classList.add('active');
+}
+
+function goToSilence() {
+  if (!chosen) return;
+  document.getElementById('s1').classList.add('hidden');
+  document.getElementById('s2').classList.remove('hidden');
+
+  if (chosen === 'nature') {
+    document.getElementById('sound-ind').classList.add('visible');
+    startNatureSound();
+  }
+
+  setTimeout(function() {
+    document.getElementById('silence-words').style.transition = 'opacity 2s ease';
+    document.getElementById('silence-words').style.opacity = '0';
+    setTimeout(function() {
+      document.getElementById('silence-words').textContent = 'The still place is always here.';
+      document.getElementById('silence-words').style.opacity = '1';
+    }, 2000);
+  }, 18000);
+}
+
+function startNatureSound() {
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    gainNode = audioCtx.createGain();
+    gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+    gainNode.gain.linearRampToValueAtTime(0.04, audioCtx.currentTime + 3);
+
+    var bufferSize = audioCtx.sampleRate * 4;
+    var buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    var data = buffer.getChannelData(0);
+    for (var i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * 0.5;
+    }
+
+    var filter1 = audioCtx.createBiquadFilter();
+    filter1.type = 'lowpass';
+    filter1.frequency.value = 400;
+
+    var filter2 = audioCtx.createBiquadFilter();
+    filter2.type = 'highpass';
+    filter2.frequency.value = 80;
+
+    var filter3 = audioCtx.createBiquadFilter();
+    filter3.type = 'peaking';
+    filter3.frequency.value = 200;
+    filter3.gain.value = -8;
+
+    noiseSource = audioCtx.createBufferSource();
+    noiseSource.buffer = buffer;
+    noiseSource.loop = true;
+
+    var lfoBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 8, audioCtx.sampleRate);
+    var lfoData = lfoBuffer.getChannelData(0);
+    for (var j = 0; j < lfoData.length; j++) {
+      lfoData[j] = Math.sin(2 * Math.PI * j / (audioCtx.sampleRate * 4)) * 0.5 + 0.5;
+    }
+    var lfo = audioCtx.createBufferSource();
+    lfo.buffer = lfoBuffer;
+    lfo.loop = true;
+
+    var lfoGain = audioCtx.createGain();
+    lfoGain.gain.value = 0.03;
+
+    lfo.connect(lfoGain);
+    lfoGain.connect(gainNode.gain);
+
+    noiseSource.connect(filter1);
+    filter1.connect(filter2);
+    filter2.connect(filter3);
+    filter3.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    noiseSource.start();
+    lfo.start();
+  } catch(e) {}
+}
+
+function stopSound() {
+  if (gainNode && audioCtx) {
+    try {
+      gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.5);
+      setTimeout(function() {
+        if (noiseSource) noiseSource.stop();
+        if (audioCtx) audioCtx.close();
+      }, 1600);
+    } catch(e) {}
+  }
+}
+
+function goToClosing() {
+  stopSound();
+  document.getElementById('s2').classList.add('hidden');
+  document.getElementById('s3').classList.remove('hidden');
+}
+
+function returnToStart() {
+  chosen = null;
+  document.getElementById('c-nature').classList.remove('selected');
+  document.getElementById('c-still').classList.remove('selected');
+  document.getElementById('arrive-btn').classList.remove('active');
+  document.getElementById('sound-ind').classList.remove('visible');
+  document.getElementById('silence-words').textContent = 'Just be here.';
+  document.getElementById('silence-words').style.opacity = '1';
+  document.getElementById('s3').classList.add('hidden');
+  document.getElementById('s1').classList.remove('hidden');
+}
+</script>
+</body>
+</html>
